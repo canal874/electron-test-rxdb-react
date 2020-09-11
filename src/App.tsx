@@ -1,15 +1,14 @@
 import * as React from 'react';
 import './App.css';
+import { StoreProvider } from './StoreProvider';
+import { TodoList } from './TodoList';
 
-export interface AppProps {
-  title: string;
-  author: string;
-}
-
-export const App = (props: AppProps) => {
+export const App = () => {
   return (
     <div styleName='app'>
-      {props.title}, {props.author}
+      <StoreProvider>
+        <TodoList></TodoList>
+      </StoreProvider>
     </div>
   );
 };

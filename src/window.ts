@@ -1,6 +1,6 @@
 interface WindowWithAPI extends Window {
   api: {
-    fromRenderer: (message: string) => Promise<void>;
+    persistentStoreDispatch: (action: any) => Promise<void>;
   };
 }
 declare const window: WindowWithAPI;
