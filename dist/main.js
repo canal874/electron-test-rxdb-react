@@ -36,19 +36,40 @@ rxdb_1.addRxPlugin(require('pouchdb-adapter-http')); // enable syncing over http
 const electronConnect = require('electron-connect');
 const syncServer = 'http://localhost';
 let mainWindow;
+let rxdb;
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
     // eslint-disable-line global-require
     electron_1.app.quit();
 }
+electron_1.ipcMain.handle('persistent-store-dispatch', (event, action) => {
+    switch (action.type) {
+        case 'todoitem-put':
+            action.payload.id = nanoid_1.nanoid();
+            rxdb.collections.todoitems.atomicUpsert(action.payload);
+            break;
+        case 'todoitem-delete':
+            rxdb.collections.todoitems.findOne().where('id').eq(action.payload.id).remove();
+            break;
+        default:
+            break;
+    }
+});
 const initRenderer = async () => {
     mainWindow.show();
-    const db = await initDb();
-    db.collections.todoitems.insert({
-        id: nanoid_1.nanoid(),
-        title: 'Rip my CDs',
-        completed: false,
+    rxdb = await initDb();
+    // load initial data
+    const documents = (await rxdb.collections.todoitems.find().exec());
+    documents.forEach(doc => {
+        mainWindow.webContents.send('persistent-store-updated', doc.toJSON());
     });
+    /*
+    db.collections.todoitems.insert({
+      id: nanoid(),
+      title: 'Rip my CDs',
+      completed: false,
+    });
+    */
 };
 const initDb = async () => {
     const collections = [
@@ -90,11 +111,12 @@ const initDb = async () => {
   */
     db.collections.todoitems.$.subscribe(changeEvent => {
         // insert, update, delete
-        if (changeEvent.operation === 'INSERT' || changeEvent.operation === 'UPDATE') {
-            console.dir(changeEvent);
+        if (changeEvent.operation === 'INSERT') {
             const payload = changeEvent.documentData;
-            delete payload._rev;
             mainWindow.webContents.send('persistent-store-updated', payload);
+        }
+        else if (changeEvent.operation === 'DELETE') {
+            mainWindow.webContents.send('persistent-store-deleted', changeEvent.documentData.id);
         }
     });
     // sync

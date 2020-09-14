@@ -8,17 +8,49 @@ export interface AppProps {
 }
 
 export const TodoList = () => {
-  const [todoItemsState, globalDispatch] = React.useContext(
+  const [todoItemsState, persistentStoreDispatch] = React.useContext(
     GlobalContext
   ) as GlobalProvider;
+  const handleClickNewButton = () => {
+    persistentStoreDispatch({
+      type: 'todoitem-put',
+      payload: {
+        id: '',
+        title: 'Rip my CD ',
+        completed: false,
+      },
+    });
+  };
+  const handleClickDeleteButton = (id: string) => {
+    persistentStoreDispatch({
+      type: 'todoitem-delete',
+      payload: id,
+    });
+  };
   const list = Object.keys(todoItemsState).map(item => {
-    return <li>{todoItemsState[item].title}</li>;
+    return (
+      <li>
+        {todoItemsState[item].title}({todoItemsState[item].id}){' '}
+        <button
+          onClick={() => {
+            handleClickDeleteButton(todoItemsState[item].id);
+          }}
+        >
+          delete
+        </button>
+      </li>
+    );
   });
   return (
     <div>
       Todo List
       <br />
       <ul>{list}</ul>
+      <div>
+        Insert New
+        <br />
+        <button onClick={handleClickNewButton}>New</button>
+      </div>
     </div>
   );
 };

@@ -1,21 +1,13 @@
-import { TodoItemsState } from './todoitems_schema';
+import { TodoItem } from './todoitems_schema';
 
 export type TodoItemPutAction = {
   type: 'todoitem-put';
-  payload: TodoItemsState;
+  payload: TodoItem;
 };
 
-export type TodoItemTitlePutAction = {
-  type: 'todoitem-put';
+export type TodoItemDeleteAction = {
+  type: 'todoitem-delete';
   payload: string;
 };
 
-export type TodoItemCompletedPutAction = {
-  type: 'todoitem-completed-put';
-  payload: boolean;
-};
-
-export type PersistentStoreAction =
-  | TodoItemPutAction
-  | TodoItemTitlePutAction
-  | TodoItemCompletedPutAction;
+export type PersistentStoreAction = TodoItemPutAction | TodoItemDeleteAction;

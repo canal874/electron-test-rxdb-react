@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { app, BrowserWindow, ipcMain } from 'electron';
-import { addRxPlugin, createRxDatabase, RxDatabase } from 'rxdb';
+import { addRxPlugin, createRxDatabase, RxDatabase, RxDocument } from 'rxdb';
 import leveldown from 'leveldown';
 import { nanoid } from 'nanoid';
 import { todoItemsRxSchema } from './todoitems_schema';
@@ -14,6 +14,7 @@ const electronConnect = require('electron-connect');
 const syncServer = 'http://localhost';
 
 let mainWindow: BrowserWindow;
+let rxdb: RxDatabase;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -21,13 +22,30 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
+ipcMain.handle('persistent-store-dispatch', (event, action) => {
+  switch (action.type) {
+    case 'todoitem-put':
+      action.payload.id = nanoid();
+      rxdb.collections.todoitems.atomicUpsert(action.payload);
+      break;
+
+    case 'todoitem-delete':
+      rxdb.collections.todoitems.findOne().where('id').eq(action.payload.id).remove();
+      break;
+
+    default:
+      break;
+  }
+});
+
 const initRenderer = async () => {
   mainWindow.show();
-  const db = await initDb();
-  db.collections.todoitems.insert({
-    id: nanoid(),
-    title: 'Rip my CDs',
-    completed: false,
+  rxdb = await initDb();
+
+  // load initial data
+  const documents = (await rxdb.collections.todoitems.find().exec()) as RxDocument[];
+  documents.forEach(doc => {
+    mainWindow.webContents.send('persistent-store-updated', doc.toJSON());
   });
 };
 
@@ -74,11 +92,12 @@ const initDb = async (): Promise<RxDatabase> => {
 */
   db.collections.todoitems.$.subscribe(changeEvent => {
     // insert, update, delete
-    if (changeEvent.operation === 'INSERT' || changeEvent.operation === 'UPDATE') {
-      console.dir(changeEvent);
+    if (changeEvent.operation === 'INSERT') {
       const payload = changeEvent.documentData;
-      delete payload._rev;
       mainWindow.webContents.send('persistent-store-updated', payload);
+    }
+    else if (changeEvent.operation === 'DELETE') {
+      mainWindow.webContents.send('persistent-store-deleted', changeEvent.documentData.id);
     }
   });
 

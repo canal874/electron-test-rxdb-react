@@ -12,5 +12,11 @@ electron_1.contextBridge.exposeInMainWorld('api', {
 /**
  * Command from Main process
  */
-electron_1.ipcRenderer.on('persistent-store-updated', (event, payload) => window.postMessage({ command: 'persistent-store-updated', payload }, 'file://'));
+electron_1.ipcRenderer.on('persistent-store-updated', (event, payload) => {
+    console.dir(payload);
+    window.postMessage({ command: 'persistent-store-updated', payload }, 'file://');
+});
+electron_1.ipcRenderer.on('persistent-store-deleted', (event, payload) => {
+    window.postMessage({ command: 'persistent-store-deleted', payload }, 'file://');
+});
 //# sourceMappingURL=preload.js.map

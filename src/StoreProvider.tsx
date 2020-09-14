@@ -23,23 +23,35 @@ export const StoreProvider = (props: { children: React.ReactNode }) => {
     window.api.persistentStoreDispatch(action);
   };
 
+  // ! Use localDispatch(latestState => newState) to refer latest state.
+  // If not so, todoItemState is not updated.
   React.useEffect(() => {
-    // Add listener that is invoked when global store in Main process is changed
     const dispatch = (event: MessageEvent) => {
       if (event.source !== window || !event.data.command) return;
       const id = event.data.payload.id;
       const payload = event.data.payload;
-      const newState = JSON.parse(JSON.stringify(todoItemsState));
       switch (event.data.command) {
         case 'persistent-store-updated':
           // Copy persistentStoreState from Main process to this Renderer process
-          newState[id] = payload;
-          localDispatch(newState);
+          localDispatch(latestState => {
+            const newState = { ...latestState };
+            newState[id] = payload;
+            return newState;
+          });
+          break;
+        case 'persistent-store-deleted':
+          // Copy persistentStoreState from Main process to this Renderer process
+          localDispatch(latestState => {
+            const newState = { ...latestState };
+            delete newState[payload];
+            return newState;
+          });
           break;
         default:
           break;
       }
     };
+
     // Receive message from Main process via preload
     window.addEventListener('message', dispatch);
     const cleanup = () => {
