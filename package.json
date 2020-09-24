@@ -5,12 +5,12 @@
   "description": "My Electron application description",
   "main": "dist/main.js",
   "scripts": {
-    "copy-static": "rm -r dist && cp -r html dist && cp ./node_modules/react/umd/react.production.min.js ./dist/ && cp ./node_modules/react-dom/umd/react-dom.production.min.js ./dist/",
+    "copy-static": "rm -r dist && cp -r html dist && cp ./auth.json ./dist/ && cp ./node_modules/react/umd/react.production.min.js ./dist/ && cp ./node_modules/react-dom/umd/react-dom.production.min.js ./dist/",
     "compile-main": "npm run lint && npx tsc -p tsconfig.main.production.json && npx webpack --config webpack.renderer.production.js",
     "compile-main-debug": "npm run lint  && npx tsc -p tsconfig.main.development.json && npx cross-env NODE_ENV=development npx webpack --config webpack.renderer.development.js --watch",
-    "start": "npm run copy-static && npm run compile-main && electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make",
+    "start": "npm run copy-static && npm run compile-main && electron .",
+    "package": "npm run copy-static && npm run compile-main && electron-forge package",
+    "make": "npm run copy-static && npm run compile-main && electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint --fix --ext .ts ."
   },
@@ -30,10 +30,7 @@
           "FileDescription": "RxDB sync test"
         },
         "ignore": [
-          "\\.*",
-          "html\\",
-          "persistent_data\\",
-          "src"
+          "\\./persistent_data"
         ]
       },
       "makers": [
@@ -78,20 +75,14 @@
     "cross-env": "^7.0.2",
     "css-loader": "^3.6.0",
     "electron": "^10.1.1",
-    "electron-forge": "^5.2.4",
     "electron-prebuilt-compile": "8.2.0",
     "electron-reload-webpack-plugin": "^2.0.4",
     "eslint": "^7.8.1",
     "eslint-config-standardize": "^0.7.1",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-prettierx": "^0.14.0",
-    "leveldown": "^5.6.0",
-    "nanoid": "^3.1.12",
-    "pouchdb-adapter-http": "^7.2.2",
-    "pouchdb-adapter-leveldb": "^7.2.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "rxdb": "^9.6.0",
     "source-map-loader": "^1.1.0",
     "style-loader": "^1.2.1",
     "ts-loader": "^8.0.3",
@@ -103,6 +94,12 @@
   "dependencies": {
     "babel-plugin-react-css-modules": "^5.2.6",
     "electron-connect": "^0.6.3",
-    "electron-squirrel-startup": "^1.0.0"
+    "electron-squirrel-startup": "^1.0.0",
+    "leveldown": "^5.6.0",
+    "nanoid": "^3.1.12",
+    "pouchdb-adapter-http": "^7.2.2",
+    "pouchdb-adapter-leveldb": "^7.2.2",
+    "rxdb": "^9.6.0",
+    "rxjs": "^6.6.3"
   }
 }

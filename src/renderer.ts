@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { App } from './App';
+import { App } from './modules_renderer/App';
 
 const onready = () => {
   const domContainer = document.getElementById('react-container');

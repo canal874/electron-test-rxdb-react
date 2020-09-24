@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { TodoItemsState } from './todoitems_schema';
+import { TodoItemsState } from '../modules_common/todoitems_schema';
 import window from './window';
-import { PersistentStoreAction } from './store.types';
+import { PersistentStoreAction } from '../modules_common/store.types';
 
 // 'TodoItemsState' is used both Main process and this Renderer process.
 // ! Notice that it is not shared with Main and Renderer processes by reference,

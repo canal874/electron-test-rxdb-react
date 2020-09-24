@@ -1,9 +1,0 @@
-2020/09/14-14:40:33.230 4ee4 Recovering log #363
-2020/09/14-14:40:33.230 4ee4 Level-0 table #365: started
-2020/09/14-14:40:33.264 4ee4 Level-0 table #365: 237 bytes OK
-2020/09/14-14:40:33.285 4ee4 Delete type=0 #363
-2020/09/14-14:40:33.285 4ee4 Delete type=3 #361
-2020/09/14-14:40:33.285 5bd4 Compacting 4@0 + 1@1 files
-2020/09/14-14:40:33.306 5bd4 Generated table #367@0: 181 keys, 18526 bytes
-2020/09/14-14:40:33.306 5bd4 Compacted 4@0 + 1@1 files => 18526 bytes
-2020/09/14-14:40:33.312 5bd4 compacted to: files[ 0 1 0 0 0 0 0 ]

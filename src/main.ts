@@ -5,7 +5,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import { addRxPlugin, createRxDatabase, RxDatabase, RxDocument } from 'rxdb';
 import leveldown from 'leveldown';
 import { nanoid } from 'nanoid';
-import { todoItemsRxSchema } from './todoitems_schema';
+import { todoItemsRxSchema } from './modules_common/todoitems_schema';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 addRxPlugin(require('pouchdb-adapter-leveldb'));
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -112,7 +112,8 @@ const initDb = async (): Promise<RxDatabase> => {
 };
 
 const init = (): void => {
-  const auth = JSON.parse(readFileSync('auth.json').toLocaleString());
+  const configPath = path.join(__dirname, `./auth.json`);
+  const auth = JSON.parse(readFileSync(configPath).toLocaleString());
   syncServer = `http://${auth.user}:${auth.pass}@${auth.server}`;
 
   // Create the browser window.
