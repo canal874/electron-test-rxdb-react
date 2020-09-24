@@ -1,5 +1,7 @@
 import * as path from 'path';
+import { readFileSync } from 'fs';
 import { app, BrowserWindow, ipcMain } from 'electron';
+
 import { addRxPlugin, createRxDatabase, RxDatabase, RxDocument } from 'rxdb';
 import leveldown from 'leveldown';
 import { nanoid } from 'nanoid';
@@ -8,13 +10,15 @@ import { todoItemsRxSchema } from './todoitems_schema';
 addRxPlugin(require('pouchdb-adapter-leveldb'));
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 addRxPlugin(require('pouchdb-adapter-http')); // enable syncing over http
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const electronConnect = require('electron-connect');
 
-const syncServer = 'http://localhost';
+let syncServer = '';
+
+let rxdb: RxDatabase;
 
 let mainWindow: BrowserWindow;
-let rxdb: RxDatabase;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -57,7 +61,7 @@ const initDb = async (): Promise<RxDatabase> => {
       sync: true, // flag whether using http sync or not
     },
   ];
-  const syncURL = `${syncServer}:10102/`;
+  const syncURL = `${syncServer}/`;
   console.log('host: ' + syncURL);
 
   console.log('DatabaseService: creating database..');
@@ -74,22 +78,6 @@ const initDb = async (): Promise<RxDatabase> => {
 
   // hooks
   console.log('DatabaseService: add hooks');
-  /*  db.collections.todoitems.preInsert(docObj => {
-    const { color } = docObj;
-    return db.collections.heroes
-      .findOne()
-      .where('color')
-      .eq(color)
-      .exec()
-      .then(has => {
-        if (has != null) {
-          throw new Error('color already there');
-        }
-        return db;
-      })
-      .catch(e => console.error(e));
-  }, false);
-*/
   db.collections.todoitems.$.subscribe(changeEvent => {
     // insert, update, delete
     if (changeEvent.operation === 'INSERT') {
@@ -107,16 +95,26 @@ const initDb = async (): Promise<RxDatabase> => {
   collections
     .filter(col => col.sync)
     .map(col => col.name)
-    .map(colName =>
-      db[colName].sync({
-        remote: syncURL + colName + '/',
-      })
-    );
+    .map(colName => {
+      const remoteURL = syncURL + colName + '/';
+      console.debug(remoteURL);
+      const state = db[colName].sync({
+        remote: remoteURL,
+      });
+      state.change$.subscribe(change => console.dir(change, 3));
+      state.docs$.subscribe(docData => console.dir(docData, 3));
+      state.active$.subscribe(active => console.debug(`[${colName}] active: ${active}`));
+      state.alive$.subscribe(alive => console.debug(`[${colName}] alive: ${alive}`));
+      state.error$.subscribe(error => console.dir(error));
+    });
 
   return db;
 };
 
 const init = (): void => {
+  const auth = JSON.parse(readFileSync('auth.json').toLocaleString());
+  syncServer = `http://${auth.user}:${auth.pass}@${auth.server}`;
+
   // Create the browser window.
   mainWindow = new BrowserWindow({
     webPreferences: {

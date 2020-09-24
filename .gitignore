@@ -90,3 +90,5 @@ out/
 
 dist/
 persistent_data/
+
+auth.json
