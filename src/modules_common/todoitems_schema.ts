@@ -1,6 +1,7 @@
 export type TodoItem = {
   id: string;
   title: string;
+  updatedAt: number;
   completed: boolean;
 };
 
@@ -27,4 +28,12 @@ export const todoItemsRxSchema = {
     },
   },
   required: ['title', 'completed'],
+};
+
+export const graphQLGenerationInput = {
+  todo: {
+    schema: todoItemsRxSchema,
+    feedKeys: ['id', 'updatedAt'],
+    deletedFlag: 'deleted',
+  },
 };

@@ -2,19 +2,37 @@ import * as path from 'path';
 import { readFileSync } from 'fs';
 import { app, BrowserWindow, ipcMain } from 'electron';
 
-import { addRxPlugin, createRxDatabase, RxDatabase, RxDocument } from 'rxdb';
+import {
+  addRxPlugin,
+  createRxDatabase,
+  RxDatabase,
+  RxDocument,
+  RxGraphQLReplicationQueryBuilder,
+} from 'rxdb';
 import leveldown from 'leveldown';
 import { nanoid } from 'nanoid';
-import { todoItemsRxSchema } from './modules_common/todoitems_schema';
+import {
+  pullQueryBuilderFromRxSchema,
+  pushQueryBuilderFromRxSchema,
+  RxDBReplicationGraphQLPlugin,
+} from 'rxdb/plugins/replication-graphql';
+import {
+  graphQLGenerationInput,
+  todoItemsRxSchema,
+} from './modules_common/todoitems_schema';
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 addRxPlugin(require('pouchdb-adapter-leveldb'));
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 addRxPlugin(require('pouchdb-adapter-http')); // enable syncing over http
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+addRxPlugin(RxDBReplicationGraphQLPlugin);
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const electronConnect = require('electron-connect');
 
-const syncType = 'couchDB';
+let syncType = 'couchDB';
+syncType = 'GraphQL';
 
 let syncServer = '';
 
@@ -110,6 +128,34 @@ const initDb = async (): Promise<RxDatabase> => {
         state.alive$.subscribe(alive => console.debug(`[${colName}] alive: ${alive}`));
         state.error$.subscribe(error => console.dir(error));
       });
+  }
+  else {
+    const pullQueryBuilder: RxGraphQLReplicationQueryBuilder = pullQueryBuilderFromRxSchema(
+      'todo',
+      graphQLGenerationInput.todo,
+      5
+    );
+    const pushQueryBuilder: RxGraphQLReplicationQueryBuilder = pushQueryBuilderFromRxSchema(
+      'todo',
+      graphQLGenerationInput.todo
+    );
+    const graphQLURL = 'http://localhost:10102/graphql';
+    const replicationState = db.collections.todoitems.syncGraphQL({
+      url: graphQLURL, // url to the GraphQL endpoint
+      push: {
+        // PUT
+        queryBuilder: pushQueryBuilder, // the queryBuilder from above
+        batchSize: 5, // (optional) amount of documents that will be send in one batch
+        modifier: d => d, // (optional) modifies all pushed documents before they are send to the GraphQL endpoint
+      },
+      pull: {
+        // GET
+        queryBuilder: pullQueryBuilder, // the queryBuilder from above
+        modifier: d => d, // (optional) modifies all pushed documents before they are send to the GraphQL endpoint
+      },
+      deletedFlag: 'deleted', // the flag which indicates if a pulled document is deleted
+      live: true, // if this is true, rxdb will watch for ongoing changes and sync them
+    });
   }
 
   return db;

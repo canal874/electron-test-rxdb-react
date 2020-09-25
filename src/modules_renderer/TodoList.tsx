@@ -17,6 +17,7 @@ export const TodoList = () => {
       payload: {
         id: '',
         title: 'Rip my CD ',
+        updatedAt: Date.now(),
         completed: false,
       },
     });
