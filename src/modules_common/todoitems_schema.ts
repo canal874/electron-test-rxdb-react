@@ -22,6 +22,9 @@ export const todoItemsRxSchema = {
     completed: {
       type: 'boolean',
     },
+    updatedAt: {
+      type: 'number',
+    },
   },
   required: ['title', 'completed'],
 };
