@@ -14,6 +14,8 @@ addRxPlugin(require('pouchdb-adapter-http')); // enable syncing over http
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const electronConnect = require('electron-connect');
 
+const syncType = 'couchDB';
+
 let syncServer = '';
 
 let rxdb: RxDatabase;
@@ -89,24 +91,26 @@ const initDb = async (): Promise<RxDatabase> => {
     }
   });
 
-  // sync
-  console.log('DatabaseService: sync');
-  // Set sync() to all collections by one line
-  collections
-    .filter(col => col.sync)
-    .map(col => col.name)
-    .map(colName => {
-      const remoteURL = syncURL + colName + '/';
-      console.debug(remoteURL);
-      const state = db[colName].sync({
-        remote: remoteURL,
+  if (syncType === 'couchDB') {
+    // sync
+    console.log('DatabaseService: sync');
+    // Set sync() to all collections by one line
+    collections
+      .filter(col => col.sync)
+      .map(col => col.name)
+      .map(colName => {
+        const remoteURL = syncURL + colName + '/';
+        console.debug(remoteURL);
+        const state = db[colName].sync({
+          remote: remoteURL,
+        });
+        state.change$.subscribe(change => console.dir(change, 3));
+        state.docs$.subscribe(docData => console.dir(docData, 3));
+        state.active$.subscribe(active => console.debug(`[${colName}] active: ${active}`));
+        state.alive$.subscribe(alive => console.debug(`[${colName}] alive: ${alive}`));
+        state.error$.subscribe(error => console.dir(error));
       });
-      state.change$.subscribe(change => console.dir(change, 3));
-      state.docs$.subscribe(docData => console.dir(docData, 3));
-      state.active$.subscribe(active => console.debug(`[${colName}] active: ${active}`));
-      state.alive$.subscribe(alive => console.debug(`[${colName}] alive: ${alive}`));
-      state.error$.subscribe(error => console.dir(error));
-    });
+  }
 
   return db;
 };
