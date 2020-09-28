@@ -1,0 +1,3 @@
+[submodule "external_modules/rxdb"]
+	path = external_modules/rxdb
+	url = https://github.com/canal874/rxdb.git
