@@ -14,8 +14,8 @@ import { nanoid } from 'nanoid';
 import {
   pullQueryBuilderFromRxSchema,
   pushQueryBuilderFromRxSchema,
-  RxDBReplicationGraphQLPlugin,
-} from 'rxdb/plugins/replication-graphql';
+  RxDBReplicationGitHubPlugin,
+} from 'rxdb/plugins/replication-github';
 import {
   graphQLGenerationInput,
   todoItemsRxSchema,
@@ -26,7 +26,7 @@ addRxPlugin(require('pouchdb-adapter-leveldb'));
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 addRxPlugin(require('pouchdb-adapter-http')); // enable syncing over http
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-addRxPlugin(RxDBReplicationGraphQLPlugin);
+addRxPlugin(RxDBReplicationGitHubPlugin);
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const electronConnect = require('electron-connect');

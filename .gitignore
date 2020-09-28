@@ -88,8 +88,9 @@ typings/
 # Electron-Forge
 out/
 
+external_modules/
+
 dist/
 persistent_data/
-external_modules/
 
 auth.json
