@@ -90,5 +90,6 @@ out/
 
 dist/
 persistent_data/
+external_modules/
 
 auth.json
